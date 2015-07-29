@@ -36,7 +36,7 @@
     "gulp-util": "^2.2.14",
     "split2": "^0.1.1",
     "through2": "^0.4.2",
-    "source-map": "~0.1.40"
+    "source-map": "~0.4.4"
   },
   "devDependencies": {
     "mocha": "^1.19.0"

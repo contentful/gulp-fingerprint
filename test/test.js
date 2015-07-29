@@ -5,6 +5,9 @@ var assert = require('assert');
 var gutil = require('gulp-util');
 var fingerprint = require('../');
 var manifest = require('./rev-manifest');
+var sourceMap = require('source-map')
+var SourceMapGenerator = sourceMap.SourceMapGenerator
+var SourceMapConsumer = sourceMap.SourceMapConsumer
 
 var fakeCssFile = 'body {\n' +
   '  background-image: url("/images/body-bg.jpg");' +
@@ -191,6 +194,36 @@ var fakeHtmlFile = '<body>\n' +
         contents: new Buffer(fakeCssFile)
       }));
 
+    });
+
+    it('updates source maps', function (done) {
+      var stream = fingerprint(manifest);
+
+      stream.on('data', function (file) {
+        var sourceMap = new SourceMapConsumer(file.sourceMap)
+        var original = sourceMap.originalPositionFor({line: 2, column: 0});
+        assert.deepEqual(original, {line: 1, column: 10, source: 'original.css', name: null});
+        done();
+      });
+
+      var sourceMap = new SourceMapGenerator();
+      sourceMap.addMapping({
+        generated: {line: 2, column: 0},
+        original:  {line: 1, column: 10},
+        source:    'original.css'
+      });
+
+      var file = new gutil.File({
+        path: 'app.css',
+        contents: new Buffer(
+          'body {\n' +
+          '  url("/images/body-bg.jpg")' +
+          '}'
+        )
+      });
+      file.sourceMap = sourceMap.toJSON();
+
+      stream.write(file);
     });
 
   });

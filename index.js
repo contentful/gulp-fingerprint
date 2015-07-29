@@ -149,16 +149,13 @@ var plugin = function(manifest, options) {
       this.push(file);
       return cb();
     }
-    // console.log(file.contents);
 
     if (file.isStream()) {
-      // console.log('is Stream');
       this.emit('error', new gutil.PluginError(PLUGIN_NAME, 'Streaming not supported'));
       return cb();
     }
 
     if (file.isBuffer()) {
-      // console.log('is Buffer');
       var oldContent = file.contents.toString();
       file.pipe(split())
       .pipe(through(mode === 'regex' ? regexMode : replaceMode,  function(callback) {
@@ -167,41 +164,34 @@ var plugin = function(manifest, options) {
           file.contents = new Buffer(stringContent.join('\n'));
 
           if (file.sourceMap) {
-            var map, calculateMapping;
+            var map;
             if (file.sourceMap.mappings) {
               var consumer  = new SourceMapConsumer(file.sourceMap);
+              if (!consumer.file) {
+                consumer.file = file.relative;
+              }
               map = SourceMapGenerator.fromSourceMap(consumer);
-              calculateMapping = function(lineNo, mapping) {
-                var orig = consumer.originalPositionFor({line: lineNo, column: mapping.original});
-                return { 
-                  original:  {line: orig.line, column: orig.column      },
-                  generated: {line: lineNo   , column: mapping.generated},
-                  source: orig.source
-                };
-              };
             } else {
               map = new SourceMapGenerator({ file: file.relative });
               map.setSourceContent(file.relative, oldContent);
-              calculateMapping = function(lineNo, mapping, source) {
-                return { 
-                  original:  {line: lineNo , column: mapping.original },
-                  generated: {line: lineNo , column: mapping.generated},
-                  source: source
-                };
-              };
             }
 
-            var replacements = content.map(function(x){return x[1];});
+            var replacements = content.map(function(x) { return x[1]; });
             replacements.forEach(function(line, lineNo){
               line.forEach(function(mapping){
-                map.addMapping(calculateMapping(lineNo, mapping, file.relative));
+                map.addMapping({
+                  // Source Map line numbers are 1-based
+                  original:  {line: lineNo + 1, column: mapping.original},
+                  generated: {line: lineNo + 1, column: mapping.generated},
+                  source: map._file
+                });
               });
             });
+            map.applySourceMap(consumer);
             file.sourceMap = map.toJSON();
           }
           that.push(file);
         }
-        // callback();
         cb();
       }));
     }
