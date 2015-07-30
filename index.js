@@ -164,13 +164,13 @@ var plugin = function(manifest, options) {
           file.contents = new Buffer(stringContent.join('\n'));
 
           if (file.sourceMap) {
-            var map;
+            var map, consumer;
             if (file.sourceMap.mappings) {
               var sourceMap = file.sourceMap;
               if (!sourceMap.file) {
                 sourceMap.file = file.relative;
               }
-              var consumer  = new SourceMapConsumer(sourceMap);
+              consumer = new SourceMapConsumer(sourceMap);
               map = SourceMapGenerator.fromSourceMap(consumer);
             } else {
               map = new SourceMapGenerator({ file: file.relative });
@@ -188,7 +188,9 @@ var plugin = function(manifest, options) {
                 });
               });
             });
-            map.applySourceMap(consumer);
+            if (consumer) {
+              map.applySourceMap(consumer);
+            }
             file.sourceMap = map.toJSON();
           }
           that.push(file);
