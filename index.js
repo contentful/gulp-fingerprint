@@ -166,10 +166,11 @@ var plugin = function(manifest, options) {
           if (file.sourceMap) {
             var map;
             if (file.sourceMap.mappings) {
-              var consumer  = new SourceMapConsumer(file.sourceMap);
-              if (!consumer.file) {
-                consumer.file = file.relative;
+              var sourceMap = file.sourceMap;
+              if (!sourceMap.file) {
+                sourceMap.file = file.relative;
               }
+              var consumer  = new SourceMapConsumer(sourceMap);
               map = SourceMapGenerator.fromSourceMap(consumer);
             } else {
               map = new SourceMapGenerator({ file: file.relative });
