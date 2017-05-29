@@ -1,3 +1,7 @@
+# This repository is deprecated. There no further support or maintenence planned.
+
+---
+
 # [gulp](http://gulpjs.com)-fingerprint [![Build Status](https://travis-ci.org/vincentmac/gulp-fingerprint.svg?branch=master)](https://travis-ci.org/vincentmac/gulp-fingerprint)
 
 ## Install
